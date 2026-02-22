@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Basic colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Light colors -->
+    <color name="colorPrimaryLight">#008CEA</color>
+    <!--color name="colorPrimaryDark">#006CB5</color>  For the Status Bar -->
+    <color name="colorAccentLight">#008CEA</color> <!-- High-energy accent -->
+
+    <!-- Choice: Muted Secondary (Material 3 style) -->
+    <color name="colorSecondaryLight">#526070</color>
+    <color name="colorSecondaryContainerLight">#D6E4F7</color>
+    <color name="colorOnSecondaryLight">#FFFFFF</color>
+
+    <!-- Supporting UI Colors -->
+    <color name="colorBackgroundLight">#F5F5F5</color>
+    <color name="colorSurfaceLight">#FFFFFF</color>
+    <color name="colorOnPrimaryLight">#FFFFFF</color>
+
+    <color name="loginTitleLight">#3E3E3E</color>
+    <color name="coloredBtnTextLight">#ffffff</color>
+    <!-- Dark colors -->
+    <!-- Primary: Desaturated for Dark Mode to avoid vibration -->
+    <color name="colorPrimaryDark">#273844</color>
+    <color name="colorPrimaryVariant">#003447</color> <!-- Use your original light as the variant -->
+
+    <!-- Accent: Shifted slightly lighter/softer -->
+    <color name="colorAccentDark">#273844</color>
+
+    <!-- Secondary: Tonal adjustments for Material 3 -->
+    <color name="colorSecondaryDark">#B9C8DA</color>
+    <color name="colorSecondaryContainerDark">#3B4858</color>
+    <color name="colorOnSecondaryDark">#1E2B3A</color>
+
+    <!-- Background & Surface: Dark Grays (better than pure black) -->
+    <color name="colorBackgroundDark">#121212</color>
+    <color name="colorSurfaceDark">#1E1E1E</color>
+
+    <!-- Content Colors -->
+    <color name="colorOnPrimaryDark">#003355</color>
+    <color name="colorOnSurfaceDark">#E2E2E2</color>
+
+    <color name="loginTitleDark">#DDDDDD</color>
+    <color name="coloredBtnTextDark">#dddddd</color>
+</resources>

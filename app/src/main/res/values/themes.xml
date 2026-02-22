@@ -1,0 +1,22 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.SchoolDiary2" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <!--  Customize your light theme here.  -->
+        <!--  <item name="colorPrimary">@color/my_light_primary</item>  -->
+        <item name="colorPrimary">@color/colorPrimaryLight</item>
+        <item name="colorAccent">@color/colorAccentLight</item>
+        <!--  High-energy accent  -->
+        <!--  Choice: Muted Secondary (Material 3 style)  -->
+        <item name="colorSecondary">@color/colorSecondaryLight</item>
+        <item name="colorSecondaryContainer">@color/colorSecondaryContainerLight</item>
+        <item name="colorOnSecondary">@color/colorOnSecondaryLight</item>
+        <!--  Supporting UI Colors  -->
+        <item name="backgroundColor">@color/colorBackgroundLight</item>
+        <item name="colorSurface">@color/colorSurfaceLight</item>
+        <item name="colorOnPrimary">@color/colorOnPrimaryLight</item>
+        <item name="loginTitleColor">@color/loginTitleLight</item>
+        <item name="coloredBtnTextColor">@color/coloredBtnTextLight</item>
+    </style>
+
+    <style name="Theme.SchoolDiary2" parent="Base.Theme.SchoolDiary2" />
+</resources>
