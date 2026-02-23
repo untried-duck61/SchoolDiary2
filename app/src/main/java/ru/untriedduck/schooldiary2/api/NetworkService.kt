@@ -17,15 +17,24 @@ object NetworkService {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val client = OkHttpClient.Builder()
+    val client = OkHttpClient.Builder()
         .addInterceptor { chain ->
-            val request = chain.request().newBuilder()
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-                .build()
-            chain.proceed(request)
+            val request = chain.request()
+            val requestBuilder = request.newBuilder()
+
+            // Стандартные заголовки
+            requestBuilder.header("User-Agent", "Mozilla/5.0 ...")
+
+            // Логика: если это НЕ запрос авторизации, добавляем сохраненные ключи
+            val path = request.url.encodedPath
+            if (!path.contains("auth/getdata") && !path.contains("login") && !path.contains("schools/search")) {
+                sessionManager?.getAtKey()?.let { requestBuilder.header("at", it) }
+                sessionManager?.getEsrnCookie()?.let { requestBuilder.header("Cookie", it) }
+            }
+
+            chain.proceed(requestBuilder.build())
         }
         .addInterceptor(logging)
-        .followRedirects(true)
         .build()
 
     val api: AsuApiService by lazy {
