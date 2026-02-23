@@ -21,6 +21,7 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private lateinit var diaryAdapter: DiaryAdapter
     private val calendar: Calendar = Calendar.getInstance(Locale("ru"))
     private val sdf = SimpleDateFormat("dd.MM", Locale.getDefault())
     private val apiSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
