@@ -25,9 +25,8 @@ interface AsuApiService {
     @FormUrlEncoded
     @POST("webapi/login")
     suspend fun login(
-        @Header("Cookie") sessionCookie: String, // Передаем NSSESSIONID
-        @Header("X-Requested-With") requestedWith: String = "XMLHttpRequest",
-        @Header("Referer") referer: String = "https://asurso.ru/about.html",
+        @Header("Cookie") sessionCookie: String,
+        @Header("Referer") referer: String = "https://asurso.ru/about.html", // Добавь это!
         @FieldMap params: Map<String, String>
     ): Response<LoginResponse>
 
