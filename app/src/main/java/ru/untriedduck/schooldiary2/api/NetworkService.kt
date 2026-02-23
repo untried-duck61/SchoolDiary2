@@ -7,6 +7,12 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkService {
+    private var sessionManager: SessionManager? = null
+
+    fun init(context: Context) {
+        sessionManager = SessionManager(context)
+    }
+
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
