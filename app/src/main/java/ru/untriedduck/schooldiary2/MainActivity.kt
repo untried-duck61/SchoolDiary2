@@ -20,21 +20,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityMainBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Проверяем, есть ли сохраненная сессия
-        val session = SessionManager(this)
-
-        if (session.getAtKey() == null || session.getEsrnCookie() == null) {
-            // Если токенов нет — отправляем на вход
-            val intent = Intent(this, LoginActivity::class.java)
-            // Эти флаги нужны, чтобы нельзя было вернуться назад пустой экран кнопкой "Назад"
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            return
-        }
+        binding= ActivityMainBinding.inflate(layoutInflater)
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
