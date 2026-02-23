@@ -35,4 +35,11 @@ interface AsuApiService {
     suspend fun initDiary(
         @Header("at") at: String
     ): Response<StudentInitResponse>
+
+    @GET("webapi/student/diary")
+    suspend fun getDiary(
+        @Query("studentId") studentId: Int,
+        @Query("weekStart") weekStart: String,
+        @Query("weekEnd") weekEnd: String
+    ): Response<DiaryResponse>
 }
