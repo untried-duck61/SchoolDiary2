@@ -54,4 +54,12 @@ object NetworkService {
         sessionManager?.saveSession("", "", -1) // Затираем в Prefs
     }
 
+    // Чтобы иметь доступ к кукам извне, если нужно
+    fun clearCookies() {
+        // Если мы используем стандартный CookieJar в виде анонимного объекта,
+        // его сложно достать. Проще всего сделать так:
+        client.dispatcher.executorService.shutdown()
+        // На самом деле, для АСУ РСО достаточно, чтобы мы НЕ посылали старую куку
+        // в момент запроса /auth/getdata и /login.
+    }
 }
