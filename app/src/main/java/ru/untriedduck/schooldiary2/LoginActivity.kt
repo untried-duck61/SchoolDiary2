@@ -133,20 +133,39 @@ class LoginActivity : AppCompatActivity() {
                 if (loginResponse.isSuccessful) {
                     val loginBody = loginResponse.body()
                     val atKey = loginBody?.at
-                    // Вытаскиваем куку ESRNSec — это наш основной ключ доступа теперь
-                    val esrnSec = loginResponse.headers().values("Set-Cookie")
-                        .find { it.contains("ESRNSec") }?.split(";")?.first()
 
-                    if (atKey != null && esrnSec != null) {
+                    // 1. Берем куки ПРЯМО из заголовков текущего ответа
+                    val allSetCookies = loginResponse.headers().values("Set-Cookie")
+
+                    // Ищем строку, которая содержит ESRNSec и НЕ пустая
+                    val esrnSecValue = allSetCookies
+                        .filter { it.contains("ESRNSec=") && !it.contains("ESRNSec=;") }
+                        .map { it.split(";").first() } // Отрезаем expires, path и т.д.
+                        .lastOrNull()
+
+                    Log.d("ASU_DEBUG", "Куки из заголовков: $allSetCookies")
+                    Log.d("ASU_DEBUG", "Выбранная кука: $esrnSecValue")
+
+                    if (atKey != null && esrnSecValue != null) {
                         // ШАГ 4: Инициализация дневника
-                        val initResponse = NetworkService.api.initDiary(atKey, esrnSec)
+                        delay(500)
+
+                        // ВАЖНО: Нам нужно, чтобы NetworkService УЖЕ знал эту куку перед вызовом initDiary
+                        val session = SessionManager(this@LoginActivity)
+                        // Временно сохраняем (studentId пока заглушка -1)
+                        session.saveSession(atKey, esrnSecValue, -1)
+
+                        // Инициализируем NetworkService, чтобы Interceptor подхватил новую куку
+                        NetworkService.init(this@LoginActivity)
+
+                        val initResponse = NetworkService.api.initDiary(atKey)
 
                         if (initResponse.isSuccessful) {
                             val studentId = initResponse.body()?.students?.firstOrNull()?.studentId
 
                             if (studentId != null) {
-                                val session = SessionManager(this@LoginActivity)
-                                session.saveSession(atKey, esrnSec, studentId)
+                                // Сохраняем уже финально с правильным studentId
+                                session.saveSession(atKey, esrnSecValue, studentId)
 
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(this@LoginActivity, "Вход успешен!", Toast.LENGTH_SHORT).show()
@@ -159,12 +178,11 @@ class LoginActivity : AppCompatActivity() {
                                 throw Exception("Список учеников пуст")
                             }
                         } else {
-                            // Выводим код ошибки для отладки
-                            throw Exception("Ошибка инициализации: ${initResponse.code()} ${initResponse.message()}")
+                            throw Exception("Ошибка инициализации: ${initResponse.code()}")
                         }
-                    } else throw Exception("Сервер не вернул ключи доступа (at/ESRNSec)")
-                } else {
-                    throw Exception("Неверный логин или пароль")
+                    } else {
+                        throw Exception("Сервер не прислал ключ сессии (ESRNSec)")
+                    }
                 }
 
             } catch (e: Exception) {
