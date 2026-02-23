@@ -82,6 +82,8 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun attemptLogin() {
+        val session = SessionManager(this)
+
         val username = binding.edtUsername.text.toString()
         val password = binding.edtPassword.text.toString()
         val schoolId = selectedSchoolId
