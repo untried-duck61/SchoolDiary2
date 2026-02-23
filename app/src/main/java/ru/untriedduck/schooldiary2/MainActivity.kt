@@ -32,6 +32,18 @@ class MainActivity : AppCompatActivity() {
 
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
+        NetworkService.init(this)
+
+        if (!checkSession()) {
+            return
+        }
+
+        setupRecyclerView()
+        setupWeekNavigation()
+
+        // Загружаем данные для текущей недели при первом запуске
+        loadDiaryForCurrentWeek()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
