@@ -21,6 +21,10 @@ import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
+    private val calendar: Calendar = Calendar.getInstance(Locale("ru"))
+    private val sdf = SimpleDateFormat("dd.MM", Locale.getDefault())
+    private val apiSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= ActivityMainBinding.inflate(layoutInflater)
