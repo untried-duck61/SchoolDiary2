@@ -45,4 +45,13 @@ object NetworkService {
             .build()
             .create(AsuApiService::class.java)
     }
+
+    // Добавляем метод для полной очистки сессии
+    fun logout() {
+        // Очищаем куки в OkHttp
+        // Если ты используешь кастомный CookieJar, нужно очистить его store
+        // Но проще всего пересоздать клиент или использовать clear на менеджер
+        sessionManager?.saveSession("", "", -1) // Затираем в Prefs
+    }
+
 }
