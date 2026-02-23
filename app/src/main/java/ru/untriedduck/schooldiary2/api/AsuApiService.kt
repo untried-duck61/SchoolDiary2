@@ -33,7 +33,6 @@ interface AsuApiService {
     // 4. Получение данных ученика (после входа)
     @GET("webapi/student/diary/init")
     suspend fun initDiary(
-        @Header("at") at: String,
-        @Header("Cookie") esrnCookie: String // Передаем ESRNSec
+        @Header("at") at: String
     ): Response<StudentInitResponse>
 }
