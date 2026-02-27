@@ -23,12 +23,14 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
             tvLessonNumber.text = lesson.number.toString()
             tvSubjectName.text = lesson.subjectName
 
-            // Берем первое задание и его описание (ДЗ)
-            val assignment = lesson.assignments?.firstOrNull()
-            tvAssignment.text = assignment?.assignmentName ?: "Нет задания"
+            val allAssignments = lesson.assignments ?: emptyList()
+            val homework = allAssignments.find { it.assignmentName?.isNotEmpty() == true }
+            tvAssignment.text = homework?.assignmentName ?: "Нет задания"
 
-            // Проверяем оценку
-            val mark = assignment?.mark?.mark
+            // Ищем любую непустую оценку среди всех заданий на этом уроке
+            val assignmentWithMark = allAssignments.find { !it.mark?.mark.isNullOrEmpty() }
+            val mark = assignmentWithMark?.mark?.mark
+
             if (!mark.isNullOrEmpty()) {
                 cardMark.visibility = View.VISIBLE
                 tvMark.text = mark
