@@ -2,6 +2,7 @@ package ru.untriedduck.schooldiary2
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -13,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.untriedduck.schooldiary2.adapters.DiaryAdapter
+import ru.untriedduck.schooldiary2.api.DiaryResponse
 import ru.untriedduck.schooldiary2.api.NetworkService
 import ru.untriedduck.schooldiary2.api.SessionManager
 import ru.untriedduck.schooldiary2.databinding.ActivityMainBinding
