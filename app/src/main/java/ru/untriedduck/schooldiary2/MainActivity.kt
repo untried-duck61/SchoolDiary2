@@ -24,9 +24,13 @@ import java.util.*
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var diaryAdapter: DiaryAdapter
-    private val calendar: Calendar = Calendar.getInstance(Locale("ru"))
-    private val sdf = SimpleDateFormat("dd.MM", Locale.getDefault())
+
+    // Календарь хранит текущий ВЫБРАННЫЙ день
+    private val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+4"), Locale("ru"))
+    private val displaySdf = SimpleDateFormat("EEEE, d MMMM", Locale("ru")) // Пятница, 21 февраля
     private val apiSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+
+    private var currentWeekData: DiaryResponse? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,15 +41,13 @@ class MainActivity : AppCompatActivity() {
 
         NetworkService.init(this)
 
-        if (!checkSession()) {
-            return
-        }
+        if (!checkSession()) return
 
         setupRecyclerView()
-        setupWeekNavigation()
+        setupNavigation()
 
-        // Загружаем данные для текущей недели при первом запуске
-        loadDiaryForCurrentWeek()
+        // Загружаем данные для текущего дня при первом запуске
+        refreshData()
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -59,95 +61,106 @@ class MainActivity : AppCompatActivity() {
         return sdf.format(this.time)
     }
 
-    private fun checkSession(): Boolean {
-        val session = SessionManager(this)
-        if (session.getAtKey() == null) {
-            val intent = Intent(this, LoginActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            return false
-        }
-        return true
-    }
-
     private fun setupRecyclerView() {
         diaryAdapter = DiaryAdapter(emptyList())
         binding.rvDiary.layoutManager = LinearLayoutManager(this)
         binding.rvDiary.adapter = diaryAdapter
     }
 
-    private fun setupWeekNavigation() {
+    private fun setupNavigation() {
         binding.btnPreviousWeek.setOnClickListener {
-            calendar.add(Calendar.WEEK_OF_YEAR, -1)
-            loadDiaryForCurrentWeek()
+            calendar.add(Calendar.DAY_OF_YEAR, -1)
+            refreshData()
         }
         binding.btnNextWeek.setOnClickListener {
-            calendar.add(Calendar.WEEK_OF_YEAR, 1)
-            loadDiaryForCurrentWeek()
+            calendar.add(Calendar.DAY_OF_YEAR, 1)
+            refreshData()
         }
     }
 
-    private fun loadDiaryForCurrentWeek() {
-        // Устанавливаем понедельник текущей недели в календаре
-        calendar.firstDayOfWeek = Calendar.MONDAY
-        calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
-        val start = calendar.time
+    private fun refreshData() {
+        // Форматируем дату для заголовка
+        val dateText = displaySdf.format(calendar.time)
+        binding.tvCurrentWeek.text = dateText.replaceFirstChar { it.uppercase() }
 
-        // Устанавливаем воскресенье
-        calendar.add(Calendar.DAY_OF_WEEK, 6)
-        val end = calendar.time
-
-        // Возвращаем календарь на понедельник для отображения дат
-        calendar.add(Calendar.DAY_OF_WEEK, -6)
-
-        // Обновляем UI
-        binding.tvCurrentWeek.text = "${sdf.format(start)} - ${sdf.format(end)}"
-        binding.progressBar.visibility = View.VISIBLE
-        binding.rvDiary.visibility = View.GONE
-        binding.tvNoData.visibility = View.GONE
-
-        // Загружаем данные
-        val startApi = apiSdf.format(start)
-        val endApi = apiSdf.format(end)
-        loadDiary(startApi, endApi)
+        // Проверяем, есть ли уже данные за эту неделю в памяти, чтобы не спамить запросами
+        // (Для упрощения пока будем качать каждый раз, но за нужную неделю)
+        loadDiaryForDate(calendar.time)
     }
 
-    private fun loadDiary(weekStart: String, weekEnd: String) {
+    private fun loadDiaryForDate(date: Date) {
+        val weekCalendar = Calendar.getInstance(Locale("ru"))
+        weekCalendar.time = date
+        weekCalendar.firstDayOfWeek = Calendar.MONDAY
+        weekCalendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+
+        val startApi = apiSdf.format(weekCalendar.time)
+        weekCalendar.add(Calendar.DAY_OF_WEEK, 6)
+        val endApi = apiSdf.format(weekCalendar.time)
+
         val session = SessionManager(this)
         val studentId = session.getStudentId()
 
+        binding.progressBar.visibility = View.VISIBLE
+        binding.tvNoData.visibility = View.GONE
+
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val response = NetworkService.api.getDiary(studentId, weekStart, weekEnd)
-
+                val yearId = 612
+                val response = NetworkService.api.getDiary(studentId, startApi, endApi, yearId)
                 withContext(Dispatchers.Main) {
                     binding.progressBar.visibility = View.GONE
                     if (response.isSuccessful) {
-                        val allLessons = response.body()?.weekDays
-                            ?.flatMap { it.lessons ?: emptyList() }
-                            ?.sortedBy { it.number }
-                            ?: emptyList()
+                        val diaryResponse = response.body()
+                        val targetDateString = apiSdf.format(date)
 
-                        if (allLessons.isNotEmpty()) {
-                            binding.rvDiary.visibility = View.VISIBLE
-                            diaryAdapter.updateData(allLessons)
-                        } else {
-                            binding.tvNoData.visibility = View.VISIBLE
+                        Log.d("ASU_DEBUG", "Ищем уроки на дату: $targetDateString")
+                        Log.d("ASU_DEBUG", "Всего дней в ответе: ${diaryResponse?.weekDays?.size}")
+
+                        // Более надежный поиск дня (игнорируем время после T)
+                        val dayData = diaryResponse?.weekDays?.find {
+                            it.date.split("T")[0] == targetDateString
                         }
-                    } else {
-                        binding.tvNoData.text = "Ошибка: ${response.code()}"
-                        binding.tvNoData.visibility = View.VISIBLE
+
+                        val lessons = dayData?.lessons ?: emptyList()
+
+                        Log.d("ASU_DEBUG", "Найдено уроков: ${lessons.size}")
+
+                        if (lessons.isNotEmpty()) {
+                            binding.rvDiary.visibility = View.VISIBLE
+                            binding.tvNoData.visibility = View.GONE
+                            diaryAdapter.updateData(lessons)
+                        } else {
+                            binding.rvDiary.visibility = View.GONE
+                            binding.tvNoData.visibility = View.VISIBLE
+                            binding.tvNoData.text = "На этот день ($targetDateString) уроков нет"
+                        }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    binding.progressBar.visibility = View.GONE
-                    binding.tvNoData.text = "Ошибка сети"
-                    binding.tvNoData.visibility = View.VISIBLE
-                    e.printStackTrace()
+                    if (e.message?.contains("401") == true) {
+                        // Если сессия сдохла - выкидываем на логин
+                        val intent = Intent(this@MainActivity, LoginActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                        binding.tvNoData.text = "Ошибка сети"
+                        binding.tvNoData.visibility = View.VISIBLE
+                    }
                 }
             }
         }
+    }
+
+    private fun checkSession(): Boolean {
+        val session = SessionManager(this)
+        if (session.getAtKey() == null) {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+            return false
+        }
+        return true
     }
 }
