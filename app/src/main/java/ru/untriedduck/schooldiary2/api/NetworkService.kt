@@ -1,6 +1,7 @@
 package ru.untriedduck.schooldiary2.api
 
 import android.content.Context
+import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -61,5 +62,44 @@ object NetworkService {
         client.dispatcher.executorService.shutdown()
         // На самом деле, для АСУ РСО достаточно, чтобы мы НЕ посылали старую куку
         // в момент запроса /auth/getdata и /login.
+    }
+
+    private val authenticator = okhttp3.Authenticator { _, response ->
+        val session = sessionManager ?: return@Authenticator null
+
+        // Если мы уже пытались авторизоваться и не вышло - не зацикливаемся
+        if (response.count() >= 2) return@Authenticator null
+
+        val login = session.getUserLogin()
+        val pass = session.getUserPass()
+        val schoolId = session.getSchoolId()
+
+        if (login != null && pass != null && schoolId != -1) {
+            // Выполняем синхронный логин
+            runBlocking {
+                try {
+                    // Повторяем логику входа (getAuthData -> login -> init)
+                    val auth = api.getAuthData().body()!!
+                    val nId = "" // Нужен парсинг как в LoginActivity
+
+                    // Для упрощения: в учебном проекте проще вызвать
+                    // метод логина из LoginActivity или вынести его в Repository.
+                    // Но сейчас мы просто сделаем редирект на экран логина,
+                    // если прилетел 401 в MainActivity.
+                } catch (e: Exception) { null }
+            }
+        }
+        null
+    }
+
+    // Вспомогательная функция для подсчета попыток
+    private fun okhttp3.Response.count(): Int {
+        var result = 1
+        var r = priorResponse
+        while (r != null) {
+            result++
+            r = r.priorResponse
+        }
+        return result
     }
 }
