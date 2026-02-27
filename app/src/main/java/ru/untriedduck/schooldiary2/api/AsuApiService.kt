@@ -41,6 +41,7 @@ interface AsuApiService {
     suspend fun getDiary(
         @Query("studentId") studentId: Int,
         @Query("weekStart") weekStart: String,
-        @Query("weekEnd") weekEnd: String
+        @Query("weekEnd") weekEnd: String,
+        @Query("yearId") yearId: Int
     ): Response<DiaryResponse>
 }
