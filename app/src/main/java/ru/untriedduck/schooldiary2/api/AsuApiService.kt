@@ -44,4 +44,10 @@ interface AsuApiService {
         @Query("weekEnd") weekEnd: String,
         @Query("yearId") yearId: Int
     ): Response<DiaryResponse>
+
+    @FormUrlEncoded
+    @POST("angular/school/main/")
+    suspend fun getMainPageHtml(
+        @Field("AT") atKey: String
+    ): Response<String> // Возвращает сырой HTML
 }
