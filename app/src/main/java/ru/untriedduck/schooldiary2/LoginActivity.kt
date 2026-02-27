@@ -150,9 +150,20 @@ class LoginActivity : AppCompatActivity() {
                         // ШАГ 4: Инициализация дневника
                         delay(500)
 
+                        val htmlResponse = NetworkService.api.getMainPageHtml(atKey)
+                        if (htmlResponse.isSuccessful) {
+                            val html = htmlResponse.body() ?: ""
+                            val pattern = "appContext\\.yearId = \"(\\d+)\"".toRegex()
+                            val match = pattern.find(html)
+                            val yearId = match?.groupValues?.get(1)?.toInt() ?: -1
+                            session.saveYearId(yearId)
+                            Log.d("ASU_DEBUG", "Учебный год найден: $yearId")
+                        }
+
                         // ВАЖНО: Нам нужно, чтобы NetworkService УЖЕ знал эту куку перед вызовом initDiary
                         val session = SessionManager(this@LoginActivity)
                         // Временно сохраняем (studentId пока заглушка -1)
+                        session.saveUserCredentials(username, password, schoolId) // Добавь эту строку
                         session.saveSession(atKey, esrnSecValue, -1)
 
                         // Инициализируем NetworkService, чтобы Interceptor подхватил новую куку
