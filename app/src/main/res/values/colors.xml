@@ -17,7 +17,7 @@
     <!-- Supporting UI Colors -->
     <color name="colorBackgroundLight">#F5F5F5</color>
     <color name="colorSurfaceLight">#FFFFFF</color>
-    <color name="colorOnPrimaryLight">#FFFFFF</color>
+    <color name="colorOnPrimaryLight">#8BC4FF</color>
 
     <color name="loginTitleLight">#3E3E3E</color>
     <color name="coloredBtnTextLight">#ffffff</color>
@@ -33,16 +33,16 @@
     <color name="colorAccentDark">#273844</color>
 
     <!-- Secondary: Tonal adjustments for Material 3 -->
-    <color name="colorSecondaryDark">#B9C8DA</color>
+    <color name="colorSecondaryDark">#4B505F</color>
     <color name="colorSecondaryContainerDark">#3B4858</color>
-    <color name="colorOnSecondaryDark">#1E2B3A</color>
+    <color name="colorOnSecondaryDark">#5B6FA9</color>
 
     <!-- Background & Surface: Dark Grays (better than pure black) -->
     <color name="colorBackgroundDark">#121212</color>
     <color name="colorSurfaceDark">#1E1E1E</color>
 
     <!-- Content Colors -->
-    <color name="colorOnPrimaryDark">#003355</color>
+    <color name="colorOnPrimaryDark">#78AEC4</color>
     <color name="colorOnSurfaceDark">#E2E2E2</color>
 
     <color name="loginTitleDark">#DDDDDD</color>
