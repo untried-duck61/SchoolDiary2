@@ -1,27 +1,41 @@
 package ru.untriedduck.schooldiary2.api
 
+import com.google.gson.annotations.SerializedName
+
 data class DiaryResponse(
-    val weekDays: List<WeekDay>
+    val weekStart: String,
+    val weekEnd: String,
+    val weekDays: List<WeekDay>,
+    val termName: String?,
+    val className: String?
 )
 
 data class WeekDay(
-    val date: String, // Формат "2024-05-20T00:00:00"
+    val date: String,
     val lessons: List<Lesson>?
 )
 
 data class Lesson(
     val number: Int,
     val subjectName: String,
+    val startTime: String?,
+    val endTime: String?,
     val room: String?,
-    val assignments: List<Assignment>?
+    val assignments: List<Assignment>?,
+    val classmeetingId: Long
 )
 
 data class Assignment(
-    val mark: Mark?,
-    val typeName: String?, // Например, "Ответ на уроке"
-    val assignmentName: String? // Описание задания (ДЗ)
+    val id: Long,
+    val typeId: Int,
+    val assignmentName: String?,
+    val weight: Int?,
+    val mark: Mark?
 )
 
 data class Mark(
-    val mark: String? // Сама оценка: "5", "4", "3"
+    val id: Int,
+    @SerializedName("mark") val markValue: String?, // В JSON может быть числом или строкой, Gson обычно справляется
+    val studentId: Int,
+    val assignmentId: Long
 )
