@@ -53,4 +53,7 @@ interface AsuApiService {
     suspend fun getMainPageHtml(
         @Field("AT") atKey: String
     ): Response<String> // Возвращает сырой HTML
+
+    @GET("webapi/context")
+    suspend fun getContext(): Response<ContextResponse>
 }
