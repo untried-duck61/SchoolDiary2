@@ -1,11 +1,15 @@
 package ru.untriedduck.schooldiary2.adapters
 
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
+import ru.untriedduck.schooldiary2.LessonDetailsActivity
 import ru.untriedduck.schooldiary2.api.Lesson
 import ru.untriedduck.schooldiary2.databinding.ItemLessonBinding
+import kotlin.jvm.java
 
 class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<DiaryAdapter.DiaryViewHolder>() {
 
