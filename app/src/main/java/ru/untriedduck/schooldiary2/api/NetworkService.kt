@@ -24,7 +24,8 @@ object NetworkService {
             val requestBuilder = request.newBuilder()
 
             // Стандартные заголовки
-            requestBuilder.header("User-Agent", "Mozilla/5.0 ...")
+            requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36")
+            requestBuilder.header("Referer", "https://asurso.ru/app/school/studentdiary/")
 
             // Логика: если это НЕ запрос авторизации, добавляем сохраненные ключи
             val path = request.url.encodedPath
