@@ -29,4 +29,24 @@ class SessionManager(context: Context) {
     fun getAtKey(): String? = prefs.getString("at_key", null)
     fun getEsrnCookie(): String? = prefs.getString("esrn_cookie", null)
     fun getStudentId(): Int = prefs.getInt("student_id", -1)
+
+    fun saveUserCredentials(login: String, pass: String, schoolId: Int) {
+        prefs.edit().apply {
+            putString("user_login", login)
+            putString("user_pass", pass)
+            putInt("school_id", schoolId)
+            apply()
+        }
+    }
+
+    fun getUserLogin(): String? = prefs.getString("user_login", null)
+    fun getUserPass(): String? = prefs.getString("user_pass", null)
+    fun getSchoolId(): Int = prefs.getInt("school_id", -1)
+
+    // В SessionManager.kt
+    fun saveYearId(yearId: Int) {
+        prefs.edit().putInt("year_id", yearId).apply()
+    }
+
+    fun getYearId(): Int = prefs.getInt("year_id", -1)
 }
