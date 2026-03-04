@@ -206,8 +206,6 @@ class LoginActivity : AppCompatActivity() {
                             } else {
                                 throw Exception("Список учеников пуст")
                             }
-                        } else {
-                            throw Exception("Ошибка инициализации: ${initResponse.code()}")
                         }
                     } else {
                         throw Exception("Сервер не прислал ключ сессии (ESRNSec)")
