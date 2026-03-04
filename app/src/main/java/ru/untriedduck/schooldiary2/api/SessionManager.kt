@@ -49,4 +49,5 @@ class SessionManager(context: Context) {
     }
 
     fun getYearId(): Int = prefs.getInt("year_id", -1)
+
 }
