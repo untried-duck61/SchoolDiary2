@@ -44,6 +44,7 @@ object NetworkService {
         Retrofit.Builder()
             .baseUrl("https://asurso.ru/")
             .client(client)
+            .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(AsuApiService::class.java)
