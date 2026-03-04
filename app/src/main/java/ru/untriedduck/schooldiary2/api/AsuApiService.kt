@@ -42,7 +42,10 @@ interface AsuApiService {
         @Query("studentId") studentId: Int,
         @Query("weekStart") weekStart: String,
         @Query("weekEnd") weekEnd: String,
-        @Query("yearId") yearId: Int
+        @Query("yearId") yearId: Int,
+        @Query("schoolId") schoolId: Int, // Добавлено
+        @Query("vers") vers: Long,        // Добавлено (timestamp)
+        @Query("withLaAssigns") withLaAssigns: Boolean = true
     ): Response<DiaryResponse>
 
     @FormUrlEncoded
