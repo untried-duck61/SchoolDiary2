@@ -2,4 +2,7 @@
 <resources>
     <attr name="loginTitleColor" format="color"/>
     <attr name="coloredBtnTextColor" format="color"/>
+    <attr name="footerText" format="color"/>
+    <attr name="markColor" format="color"/>
+    <attr name="assignmentDescColor" format="color"/>
 </resources>
