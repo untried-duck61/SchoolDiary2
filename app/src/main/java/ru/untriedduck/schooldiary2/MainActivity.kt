@@ -18,6 +18,7 @@ import ru.untriedduck.schooldiary2.api.DiaryResponse
 import ru.untriedduck.schooldiary2.api.NetworkService
 import ru.untriedduck.schooldiary2.api.SessionManager
 import ru.untriedduck.schooldiary2.databinding.ActivityMainBinding
+import ru.untriedduck.schooldiary2.utils.md5
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,12 +26,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var diaryAdapter: DiaryAdapter
 
-    // Календарь хранит текущий ВЫБРАННЫЙ день
     private val calendar: Calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+4"), Locale("ru"))
-    private val displaySdf = SimpleDateFormat("EEEE, d MMMM", Locale("ru")) // Пятница, 21 февраля
+    private val displaySdf = SimpleDateFormat("EEEE, d MMMM", Locale("ru"))
     private val apiSdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-
-    private var currentWeekData: DiaryResponse? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,25 +38,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         NetworkService.init(this)
-
         if (!checkSession()) return
 
         setupRecyclerView()
         setupNavigation()
-
-        // Загружаем данные для текущего дня при первом запуске
         refreshData()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-    }
-
-    // Функция для получения даты в формате АСУ РСО
-    fun Calendar.toAsuDate(): String {
-        val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        return sdf.format(this.time)
     }
 
     private fun setupRecyclerView() {
@@ -79,12 +69,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun refreshData() {
-        // Форматируем дату для заголовка
         val dateText = displaySdf.format(calendar.time)
         binding.tvCurrentWeek.text = dateText.replaceFirstChar { it.uppercase() }
-
-        // Проверяем, есть ли уже данные за эту неделю в памяти, чтобы не спамить запросами
-        // (Для упрощения пока будем качать каждый раз, но за нужную неделю)
         loadDiaryForDate(calendar.time)
     }
 
@@ -106,26 +92,44 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val yearId = 612
-                val response = NetworkService.api.getDiary(studentId, startApi, endApi, yearId)
+                var yearId = session.getYearId()
+                val schoolId = session.getSchoolId()
+
+                // Делаем первый запрос
+                var response = NetworkService.api.getDiary(
+                    studentId = studentId,
+                    weekStart = startApi,
+                    weekEnd = endApi,
+                    yearId = yearId,
+                    schoolId = schoolId,
+                    vers = System.currentTimeMillis()
+                )
+
+                // Если 401 - пробуем перелогиниться
+                if (response.code() == 401) {
+                    Log.d("ASU_DEBUG", "Сессия истекла, выполняем Silent Login...")
+                    if (performSilentLogin()) {
+                        // Повторяем запрос с новыми данными
+                        response = NetworkService.api.getDiary(
+                            studentId = session.getStudentId(),
+                            weekStart = startApi,
+                            weekEnd = endApi,
+                            yearId = session.getYearId(),
+                            schoolId = session.getSchoolId(),
+                            vers = System.currentTimeMillis()
+                        )
+                    }
+                }
+
                 withContext(Dispatchers.Main) {
                     binding.progressBar.visibility = View.GONE
                     if (response.isSuccessful) {
-                        val diaryResponse = response.body()
                         val targetDateString = apiSdf.format(date)
-
-                        Log.d("ASU_DEBUG", "Ищем уроки на дату: $targetDateString")
-                        Log.d("ASU_DEBUG", "Всего дней в ответе: ${diaryResponse?.weekDays?.size}")
-
-                        // Более надежный поиск дня (игнорируем время после T)
-                        val dayData = diaryResponse?.weekDays?.find {
-                            it.date.split("T")[0] == targetDateString
+                        val dayData = response.body()?.weekDays?.find {
+                            it.date.startsWith(targetDateString)
                         }
 
                         val lessons = dayData?.lessons ?: emptyList()
-
-                        Log.d("ASU_DEBUG", "Найдено уроков: ${lessons.size}")
-
                         if (lessons.isNotEmpty()) {
                             binding.rvDiary.visibility = View.VISIBLE
                             binding.tvNoData.visibility = View.GONE
@@ -133,34 +137,84 @@ class MainActivity : AppCompatActivity() {
                         } else {
                             binding.rvDiary.visibility = View.GONE
                             binding.tvNoData.visibility = View.VISIBLE
-                            binding.tvNoData.text = "На этот день ($targetDateString) уроков нет"
+                            binding.tvNoData.text = "На этот день уроков нет"
                         }
+                    } else if (response.code() == 401) {
+                        redirectToLogin()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    if (e.message?.contains("401") == true) {
-                        // Если сессия сдохла - выкидываем на логин
-                        val intent = Intent(this@MainActivity, LoginActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        binding.progressBar.visibility = View.GONE
-                        binding.tvNoData.text = "Ошибка сети"
-                        binding.tvNoData.visibility = View.VISIBLE
-                    }
+                    binding.progressBar.visibility = View.GONE
+                    binding.tvNoData.text = "Ошибка: ${e.message}"
+                    binding.tvNoData.visibility = View.VISIBLE
                 }
             }
+        }
+    }
+
+    private suspend fun performSilentLogin(): Boolean {
+        val session = SessionManager(this)
+        val login = session.getUserLogin() ?: return false
+        val password = session.getUserPass() ?: return false
+        val schoolId = session.getSchoolId()
+
+        return try {
+            // 1. Получаем соль
+            val authResp = NetworkService.api.getAuthData()
+            if (!authResp.isSuccessful) return false
+
+            val authData = authResp.body()!!
+            val nSessionId = authResp.headers().values("Set-Cookie")
+                .find { it.contains("NSSESSIONID") }?.split(";")?.first() ?: ""
+
+            // 2. Хешируем
+            val pwHash = (authData.salt + password.md5()).md5()
+            val loginParams = mapOf(
+                "LoginType" to "1", "cid" to "2", "sid" to "1", "pid" to "-232",
+                "cn" to "232", "sft" to "2", "scid" to schoolId.toString(),
+                "UN" to login, "PW" to pwHash.substring(0, password.length),
+                "lt" to authData.lt, "pw2" to pwHash, "ver" to authData.ver
+            )
+
+            // 3. Логин
+            val loginResp = NetworkService.api.login(nSessionId, params = loginParams)
+            if (!loginResp.isSuccessful) return false
+
+            val atKey = loginResp.body()?.at
+            val esrnSec = loginResp.headers().values("Set-Cookie")
+                .filter { it.contains("ESRNSec=") && !it.contains("ESRNSec=;") }
+                .map { it.split(";").first() }.lastOrNull()
+
+            if (atKey != null && esrnSec != null) {
+                session.saveSession(atKey, esrnSec, session.getStudentId())
+                NetworkService.init(this) // Переинициализируем перехватчик кук
+
+                // Обновляем yearId через context
+                val ctxResp = NetworkService.api.getContext()
+                if (ctxResp.isSuccessful) {
+                    ctxResp.body()?.schoolYearId?.let { session.saveYearId(it) }
+                }
+                true
+            } else false
+        } catch (e: Exception) {
+            false
         }
     }
 
     private fun checkSession(): Boolean {
         val session = SessionManager(this)
         if (session.getAtKey() == null) {
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
+            redirectToLogin()
             return false
         }
         return true
+    }
+
+    private fun redirectToLogin() {
+        val intent = Intent(this, LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
     }
 }
