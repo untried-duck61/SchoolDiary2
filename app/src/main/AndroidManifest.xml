@@ -14,6 +14,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SchoolDiary2">
         <activity
+            android:name=".LessonDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".LoginActivity"
             android:exported="false" />
         <activity
