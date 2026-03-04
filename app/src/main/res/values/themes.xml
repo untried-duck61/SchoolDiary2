@@ -16,6 +16,9 @@
         <item name="colorOnPrimary">@color/colorOnPrimaryLight</item>
         <item name="loginTitleColor">@color/loginTitleLight</item>
         <item name="coloredBtnTextColor">@color/coloredBtnTextLight</item>
+        <item name="footerText">@color/footerTextLight</item>
+        <item name="markColor">@color/markColorLight</item>
+        <item name="assignmentDescColor">@color/assignmentDescColorLight</item>
     </style>
 
     <style name="Theme.SchoolDiary2" parent="Base.Theme.SchoolDiary2" />

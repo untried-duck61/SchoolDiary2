@@ -16,5 +16,8 @@
         <item name="colorOnPrimary">@color/colorOnPrimaryDark</item>
         <item name="loginTitleColor">@color/loginTitleDark</item>
         <item name="coloredBtnTextColor">@color/coloredBtnTextDark</item>
+        <item name="footerText">@color/footerTextDark</item>
+        <item name="markColor">@color/markColorDark</item>
+        <item name="assignmentDescColor">@color/assignmentDescColorDark</item>
     </style>
 </resources>
