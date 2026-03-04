@@ -71,7 +71,7 @@
             android:textSize="14sp"
             app:layout_constraintEnd_toStartOf="@+id/cardMark"
             app:layout_constraintStart_toStartOf="@id/tvSubjectName"
-            app:layout_constraintTop_toBottomOf="@id/tvSubjectName"
+            app:layout_constraintTop_toBottomOf="@id/tvLessonInfo"
             tools:text="Решить задачи на странице 45" />
 
         <!-- Оценка (в отдельной карточке для красоты) -->
