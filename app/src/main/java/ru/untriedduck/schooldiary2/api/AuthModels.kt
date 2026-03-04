@@ -29,3 +29,9 @@ data class StudentInitResponse(
 data class StudentInfo(
     val studentId: Int
 )
+
+data class ContextResponse(
+    val schoolYearId: Int,
+    val schoolId: Int,
+    val userId: Int
+)
