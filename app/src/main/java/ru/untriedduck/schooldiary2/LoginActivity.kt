@@ -153,11 +153,18 @@ class LoginActivity : AppCompatActivity() {
                         val htmlResponse = NetworkService.api.getMainPageHtml(atKey)
                         if (htmlResponse.isSuccessful) {
                             val html = htmlResponse.body() ?: ""
-                            val pattern = "appContext\\.yearId = \"(\\d+)\"".toRegex()
+
+                            // Ищем строку appContext.yearId = "XXXX"
+                            val pattern = """appContext\.yearId\s*=\s*"(\d+)"""".toRegex()
                             val match = pattern.find(html)
                             val yearId = match?.groupValues?.get(1)?.toInt() ?: -1
-                            session.saveYearId(yearId)
-                            Log.d("ASU_DEBUG", "Учебный год найден: $yearId")
+
+                            if (yearId != -1) {
+                                session.saveYearId(yearId)
+                                Log.d("ASU_DEBUG", "Успешно спарсили yearId: $yearId")
+                            } else {
+                                Log.e("ASU_DEBUG", "Не удалось найти yearId в HTML. Проверь регулярку.")
+                            }
                         }
 
                         // ВАЖНО: Нам нужно, чтобы NetworkService УЖЕ знал эту куку перед вызовом initDiary
@@ -169,13 +176,24 @@ class LoginActivity : AppCompatActivity() {
                         // Инициализируем NetworkService, чтобы Interceptor подхватил новую куку
                         NetworkService.init(this@LoginActivity)
 
+                        val contextResponse = NetworkService.api.getContext()
+                        if (contextResponse.isSuccessful) {
+                            val yearId = contextResponse.body()?.schoolYearId ?: -1
+                            if (yearId != -1) {
+                                session.saveYearId(yearId)
+                                Log.d("ASU_DEBUG", "Нашли настоящий schoolYearId: $yearId")
+                            }
+                        } else {
+                            Log.e("ASU_DEBUG", "Не удалось получить контекст: ${contextResponse.code()}")
+                        }
+
                         val initResponse = NetworkService.api.initDiary(atKey)
 
                         if (initResponse.isSuccessful) {
                             val studentId = initResponse.body()?.students?.firstOrNull()?.studentId
 
                             if (studentId != null) {
-                                // Сохраняем уже финально с правильным studentId
+                                // Сохраняем всё финально
                                 session.saveSession(atKey, esrnSecValue, studentId)
 
                                 withContext(Dispatchers.Main) {
