@@ -23,14 +23,26 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
             tvLessonNumber.text = lesson.number.toString()
             tvSubjectName.text = lesson.subjectName
 
+            // Формируем строку Время | Кабинет
+            val timeStr = if (!lesson.startTime.isNullOrEmpty()) {
+                "${lesson.startTime} - ${lesson.endTime}"
+            } else ""
+
+            val roomStr = if (!lesson.room.isNullOrEmpty()) {
+                " | каб. ${lesson.room}"
+            } else ""
+
+            tvLessonInfo.text = "$timeStr$roomStr" // Не забудь добавить этот ID в XML
+
             val allAssignments = lesson.assignments ?: emptyList()
-            val homework = allAssignments.find { it.assignmentName?.isNotEmpty() == true }
+
+            // На главном экране ищем ТОЛЬКО домашку (обычно typeId = 3)
+            // Или просто ищем первое задание с текстом
+            val homework = allAssignments.find { it.typeId == 3 || it.assignmentName?.isNotEmpty() == true }
             tvAssignment.text = homework?.assignmentName ?: "Нет задания"
 
-            // Ищем любую непустую оценку среди всех заданий на этом уроке
-            val assignmentWithMark = allAssignments.find { !it.mark?.mark.isNullOrEmpty() }
-            val mark = assignmentWithMark?.mark?.mark
-
+            // Оценка (ищем любую, если есть на уроке)
+            val mark = allAssignments.find { it.mark?.markValue != null }?.mark?.markValue
             if (!mark.isNullOrEmpty()) {
                 cardMark.visibility = View.VISIBLE
                 tvMark.text = mark
@@ -46,6 +58,15 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
                 cardMark.setCardBackgroundColor(color)
             } else {
                 cardMark.visibility = View.GONE
+            }
+
+            // Обработка нажатия для перехода
+            root.setOnClickListener {
+                val intent = Intent(root.context, LessonDetailsActivity::class.java).apply {
+                    // Передаем данные урока (нужно сделать Lesson Serializable или Parcelable)
+                    putExtra("LESSON_DATA", Gson().toJson(lesson))
+                }
+                root.context.startActivity(intent)
             }
         }
     }
