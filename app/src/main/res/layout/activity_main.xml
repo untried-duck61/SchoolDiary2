@@ -17,12 +17,15 @@
         android:padding="8dp"
         app:layout_constraintTop_toTopOf="parent">
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnPreviousWeek"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="&lt; Назад" />
+            android:text="&lt; Назад" 
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"/>
 
         <TextView
             android:id="@+id/tvCurrentWeek"
@@ -34,12 +37,15 @@
             android:textStyle="bold"
             tools:text="16.02 - 22.02" />
 
-        <Button
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/btnNextWeek"
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Вперед >" />
+            android:text="Вперед >" 
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"/>
 
     </LinearLayout>
 
