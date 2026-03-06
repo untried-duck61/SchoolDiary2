@@ -24,7 +24,7 @@
             android:layout_height="wrap_content"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?android:attr/selectableItemBackground"/>
+            android:text="&lt; Назад" />
 
         <TextView
             android:id="@+id/tvCurrentWeek"
@@ -43,8 +43,7 @@
             android:layout_height="wrap_content"
             android:text="Вперед >" 
             android:clickable="true"
-            android:focusable="true"
-            android:foreground="?android:attr/selectableItemBackground"/>
+            android:focusable="true" />
 
     </LinearLayout>
 
