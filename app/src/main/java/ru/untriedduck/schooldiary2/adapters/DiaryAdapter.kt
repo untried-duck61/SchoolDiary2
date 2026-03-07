@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import ru.untriedduck.schooldiary2.LessonDetailsActivity
+import ru.untriedduck.schooldiary2.api.AssignmentAttachmentsResponse
 import ru.untriedduck.schooldiary2.api.Lesson
 import ru.untriedduck.schooldiary2.databinding.ItemLessonBinding
 import kotlin.jvm.java
@@ -15,6 +16,18 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
 
     class DiaryViewHolder(val binding: ItemLessonBinding) :
         RecyclerView.ViewHolder(binding.root)
+
+    private var lessonsWithFiles = mutableSetOf<Long>()
+
+    fun updateAttachmentsInfo(attachments: List<AssignmentAttachmentsResponse>) {
+        lessonsWithFiles.clear()
+        attachments.forEach { response ->
+            if (!response.attachments.isNullOrEmpty()) {
+                lessonsWithFiles.add(response.assignmentId)
+            }
+        }
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DiaryViewHolder {
         val binding = ItemLessonBinding.inflate(LayoutInflater.from(parent.context), parent, false)
@@ -26,43 +39,28 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
         with(holder.binding) {
             tvLessonNumber.text = lesson.number.toString()
             tvSubjectName.text = lesson.subjectName
-
-            // Формируем строку Время | Кабинет
-            val timeStr = if (!lesson.startTime.isNullOrEmpty()) {
-                "${lesson.startTime} - ${lesson.endTime}"
-            } else ""
-
-            val roomStr = if (!lesson.room.isNullOrEmpty()) {
-                " | каб. ${lesson.room}"
-            } else ""
-
-            tvLessonInfo.text = "$timeStr$roomStr" // Не забудь добавить этот ID в XML
+            tvLessonInfo.text = "${lesson.startTime} - ${lesson.endTime} | каб. ${lesson.room ?: "-"}"
 
             val allAssignments = lesson.assignments ?: emptyList()
 
-            // На главном экране ищем ТОЛЬКО домашку (обычно typeId = 3)
-            // Или просто ищем первое задание с текстом
-            val homework = allAssignments.find { it.typeId == 3 || it.assignmentName?.isNotEmpty() == true }
+            // 1. Ищем только Домашнее Задание (typeId == 3)
+            val homework = allAssignments.find { it.typeId == 3 }
             tvAssignment.text = homework?.assignmentName ?: "Нет задания"
 
-            // Оценка (ищем любую, если есть на уроке)
-            val mark = allAssignments.find { it.mark?.markValue != null }?.mark?.markValue
-            if (!mark.isNullOrEmpty()) {
+            // 2. Собираем ВСЕ оценки за урок
+            val allMarks = allAssignments.mapNotNull { it.mark?.markValue }
+            if (allMarks.isNotEmpty()) {
                 cardMark.visibility = View.VISIBLE
-                tvMark.text = mark
-
-                // Опционально: можно менять цвет в зависимости от оценки
-                val color = when(mark) {
-                    "5" -> 0xFF4CAF50.toInt() // Зеленый
-                    "4" -> 0xFF8BC34A.toInt() // Салатовый
-                    "3" -> 0xFFFFC107.toInt() // Желтый
-                    "2" -> 0xFFF44336.toInt() // Красный
-                    else -> 0xFFE0E0E0.toInt()
-                }
-                cardMark.setCardBackgroundColor(color)
+                tvMark.text = allMarks.joinToString(", ")
+                // Цвет берем по первой оценке
+                cardMark.setCardBackgroundColor(getMarkColor(allMarks.first()))
             } else {
                 cardMark.visibility = View.GONE
             }
+
+            // 3. Показываем скрепку, если есть хоть один файл в любом задании
+            val hasFiles = lesson.assignments?.any { lessonsWithFiles.contains(it.id) } ?: false
+            ivHasFile.visibility = if (hasFiles) View.VISIBLE else View.GONE
 
             // Обработка нажатия для перехода
             root.setOnClickListener {
@@ -80,5 +78,16 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
     fun updateData(newLessons: List<Lesson>) {
         this.lessons = newLessons
         notifyDataSetChanged()
+    }
+
+    // Вспомогательная функция для цвета
+    private fun getMarkColor(mark: String): Int {
+        return when(mark) {
+            "5" -> 0xFF4CAF50.toInt()
+            "4" -> 0xFF8BC34A.toInt()
+            "3" -> 0xFFFFC107.toInt()
+            "2" -> 0xFFF44336.toInt()
+            else -> 0xFFE0E0E0.toInt()
+        }
     }
 }
