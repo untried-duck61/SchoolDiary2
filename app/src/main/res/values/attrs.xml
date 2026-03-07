@@ -5,4 +5,5 @@
     <attr name="footerText" format="color"/>
     <attr name="markColor" format="color"/>
     <attr name="assignmentDescColor" format="color"/>
+    <attr name="attachmentCardColor" format="color"/>
 </resources>
