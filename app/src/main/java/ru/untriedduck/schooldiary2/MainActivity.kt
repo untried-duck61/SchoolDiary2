@@ -44,6 +44,10 @@ class MainActivity : AppCompatActivity() {
         setupNavigation()
         refreshData()
 
+        binding.swipeRefresh.setOnRefreshListener {
+            loadDiaryForDate(calendar.time)
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
