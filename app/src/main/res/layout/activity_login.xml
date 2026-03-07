@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LoginActivity">
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tvLoginTitle"
         android:layout_width="wrap_content"
@@ -15,7 +16,6 @@
         android:textColor="?attr/loginTitleColor"
         android:textSize="34sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.51"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -25,6 +25,7 @@
         android:layout_height="48dp"
         android:layout_marginTop="19dp"
         android:ems="10"
+        android:hint="Введите пароль"
         android:inputType="textPassword"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -38,6 +39,7 @@
         android:layout_width="330dp"
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
+        android:hint="Введите название или номер..."
         android:minHeight="48dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -51,6 +53,7 @@
         android:layout_width="330dp"
         android:layout_height="48dp"
         android:layout_marginTop="19dp"
+        android:hint="Введите имя пользователя"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.53"
