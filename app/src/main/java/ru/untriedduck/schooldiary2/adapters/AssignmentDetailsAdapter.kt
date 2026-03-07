@@ -17,6 +17,16 @@ class AssignmentDetailsAdapter(private val assignments: List<Assignment>) :
 
     class ViewHolder(val binding: ItemAssignmentDetailBinding) : RecyclerView.ViewHolder(binding.root)
 
+    // Храним мапу: ID задания -> Список файлов
+    private var attachmentsMap = mutableMapOf<Long, List<AttachmentFile>>()
+
+    fun updateAttachments(newAttachments: List<AssignmentAttachmentsResponse>) {
+        newAttachments.forEach {
+            attachmentsMap[it.assignmentId] = it.attachments ?: emptyList()
+        }
+        notifyDataSetChanged() // Это заставит список перерисоваться и показать файлы
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemAssignmentDetailBinding.inflate(
             LayoutInflater.from(parent.context), parent, false
@@ -26,6 +36,7 @@ class AssignmentDetailsAdapter(private val assignments: List<Assignment>) :
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = assignments[position]
+        val context = holder.itemView.context // Получаем контекст
         with(holder.binding) {
             // Маппинг типов работ АСУ РСО
             tvAssignmentType.text = when (item.typeId) {
@@ -61,8 +72,37 @@ class AssignmentDetailsAdapter(private val assignments: List<Assignment>) :
             }
 
             tvWeight.text = item.weight?.let { "Вес задания: $it" } ?: ""
+
+            filesContainer.removeAllViews()
+            val files = attachmentsMap[item.id] ?: emptyList()
+
+            if (files.isEmpty()) {
+                filesContainer.visibility = View.GONE
+            } else {
+                filesContainer.visibility = View.VISIBLE
+                files.forEach { file ->
+                    val fileView = LayoutInflater.from(context).inflate(
+                        R.layout.view_file_chip, filesContainer, false
+                    )
+                    val btnFile = fileView.findViewById<TextView>(R.id.btnFileName)
+                    btnFile.text = file.name
+                    fileView.setOnClickListener {
+                        downloadFile(context, file.id, file.name)
+                    }
+                    filesContainer.addView(fileView)
+                }
+            }
         }
     }
 
     override fun getItemCount() = assignments.size
+
+    private fun downloadFile(context: android.content.Context, fileId: Int, name: String) {
+        // Логика скачивания:
+        // 1. Формируем URL: https://asurso.ru/webapi/attachments/{fileId}
+        // 2. Открываем в браузере или качаем через DownloadManager
+        val url = "https://asurso.ru/webapi/attachments/$fileId"
+        val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url))
+        context.startActivity(intent)
+    }
 }
