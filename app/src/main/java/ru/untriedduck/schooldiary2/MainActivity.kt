@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.untriedduck.schooldiary2.adapters.DiaryAdapter
+import ru.untriedduck.schooldiary2.api.AttachmentsRequest
 import ru.untriedduck.schooldiary2.api.DiaryResponse
 import ru.untriedduck.schooldiary2.api.NetworkService
 import ru.untriedduck.schooldiary2.api.SessionManager
@@ -142,6 +143,26 @@ class MainActivity : AppCompatActivity() {
                             binding.rvDiary.visibility = View.GONE
                             binding.tvNoData.visibility = View.VISIBLE
                             binding.tvNoData.text = "На этот день уроков нет"
+                        }
+                        binding.swipeRefresh.isRefreshing = false
+                        val allAssignIds = dayData?.lessons?.flatMap { lesson ->
+                            lesson.assignments?.map { it.id } ?: emptyList()
+                        } ?: emptyList()
+
+// Запускаем фоновую проверку вложений для всего дня
+                        if (allAssignIds.isNotEmpty()) {
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                val attachResp = NetworkService.api.getAttachments(studentId,
+                                    AttachmentsRequest(allAssignIds)
+                                )
+                                if (attachResp.isSuccessful) {
+                                    val attachments = attachResp.body() ?: emptyList()
+                                    // Передаем данные в адаптер
+                                    withContext(Dispatchers.Main) {
+                                        diaryAdapter.updateAttachmentsInfo(attachments)
+                                    }
+                                }
+                            }
                         }
                     } else if (response.code() == 401) {
                         redirectToLogin()
