@@ -19,5 +19,6 @@
         <item name="footerText">@color/footerTextDark</item>
         <item name="markColor">@color/markColorDark</item>
         <item name="assignmentDescColor">@color/assignmentDescColorDark</item>
+        <item name="attachmentCardColor">@color/attachmentCardColorDark</item>
     </style>
 </resources>

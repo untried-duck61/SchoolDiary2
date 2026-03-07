@@ -24,6 +24,7 @@
     <color name="footerTextLight">#999999</color>
     <color name="markColorLight">@color/black</color>
     <color name="assignmentDescColorLight">#333333</color>
+    <color name="attachmentCardColorLight">#D2D2D2</color>
     <!-- Dark colors -->
     <!-- Primary: Desaturated for Dark Mode to avoid vibration -->
     <color name="colorPrimaryDark">#273844</color>
@@ -50,4 +51,5 @@
     <color name="footerTextDark">#B4B4B4</color>
     <color name="markColorDark">@color/white</color>
     <color name="assignmentDescColorDark">#A6A6A6</color>
+    <color name="attachmentCardColorDark">#2D2D2D</color>
 </resources>
