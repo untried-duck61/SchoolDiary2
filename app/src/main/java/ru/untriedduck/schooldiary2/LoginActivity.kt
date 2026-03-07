@@ -48,6 +48,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupSchoolSearch() {
+        binding.edtSearchSchool.threshold = 1
         binding.edtSearchSchool.addTextChangedListener { text ->
             searchJob?.cancel()
             val query = text.toString()
@@ -75,6 +76,9 @@ class LoginActivity : AppCompatActivity() {
                 val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, names)
                 binding.edtSearchSchool.setAdapter(adapter)
                 binding.edtSearchSchool.showDropDown()
+                if (schoolsList.isEmpty()) {
+                    binding.edtSearchSchool.dismissDropDown()
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()
