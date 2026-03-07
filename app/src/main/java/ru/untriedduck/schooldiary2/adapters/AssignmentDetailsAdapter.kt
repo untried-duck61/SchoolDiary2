@@ -3,9 +3,14 @@ package ru.untriedduck.schooldiary2.adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import ru.untriedduck.schooldiary2.R
 import ru.untriedduck.schooldiary2.api.Assignment
+import ru.untriedduck.schooldiary2.api.AssignmentAttachmentsResponse
+import ru.untriedduck.schooldiary2.api.AttachmentFile
 import ru.untriedduck.schooldiary2.databinding.ItemAssignmentDetailBinding
+import kotlin.collections.forEach
 
 class AssignmentDetailsAdapter(private val assignments: List<Assignment>) :
     RecyclerView.Adapter<AssignmentDetailsAdapter.ViewHolder>() {
