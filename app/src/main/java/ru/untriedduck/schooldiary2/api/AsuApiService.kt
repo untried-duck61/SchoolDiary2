@@ -70,4 +70,10 @@ interface AsuApiService {
     @GET("webapi/attachments/{id}")
     @Streaming // Для скачивания больших файлов
     suspend fun downloadFile(@Path("id") fileId: Int): Response<ResponseBody>
+
+    @GET("webapi/mysettings")
+    suspend fun getMySettings(): Response<MySettingsResponse>
+
+    @GET("webapi/mysettings/yearlist")
+    suspend fun getYearList(): Response<List<YearResponse>>
 }
