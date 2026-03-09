@@ -27,8 +27,13 @@ class LessonDetailsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        // Инициализируем binding
         binding = ActivityLessonDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Включаем кнопку Назад в тулбаре
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.title = "Информация об уроке" // Можно задать свой заголовок
 
         val lessonJson = intent.getStringExtra("LESSON_DATA")
         val lesson = Gson().fromJson(lessonJson, Lesson::class.java)
@@ -51,6 +56,11 @@ class LessonDetailsActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+    }
+
+    override fun onSupportNavigateUp(): Boolean {
+        finish()
+        return true
     }
 
     private fun loadAttachments(ids: List<Long>) {
