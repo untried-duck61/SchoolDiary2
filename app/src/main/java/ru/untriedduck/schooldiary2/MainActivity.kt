@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -15,7 +16,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ru.untriedduck.schooldiary2.adapters.DiaryAdapter
 import ru.untriedduck.schooldiary2.api.AttachmentsRequest
-import ru.untriedduck.schooldiary2.api.DiaryResponse
 import ru.untriedduck.schooldiary2.api.NetworkService
 import ru.untriedduck.schooldiary2.api.SessionManager
 import ru.untriedduck.schooldiary2.databinding.ActivityMainBinding
@@ -48,6 +48,19 @@ class MainActivity : AppCompatActivity() {
         binding.swipeRefresh.setOnRefreshListener {
             loadDiaryForDate(calendar.time)
         }
+
+        // Настройка Drawer (сайдбара) со стандартным ActionBar
+        val toggle = androidx.appcompat.app.ActionBarDrawerToggle(
+            this, binding.drawerLayout,
+            R.string.open, R.string.close // Добавь эти строки в strings.xml
+        )
+        binding.drawerLayout.addDrawerListener(toggle)
+        toggle.syncState()
+
+// Включаем кнопку-гамбургер в стандартном заголовке
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
+        setupDrawerLogic()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -241,5 +254,73 @@ class MainActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    // Это важно для обработки нажатия на кнопку "гамбургер"
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        val toggle = androidx.appcompat.app.ActionBarDrawerToggle(this, binding.drawerLayout, R.string.open, R.string.close)
+        if (toggle.onOptionsItemSelected(item)) {
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun setupDrawerLogic() {
+        val session = SessionManager(this)
+        val headerView = binding.navigationView.getHeaderView(0)
+        val tvName = headerView.findViewById<TextView>(R.id.tvUserName)
+
+        // Сначала ставим то, что есть
+        tvName.text = session.getUserName()
+
+        // Загружаем свежие данные профиля в фоне
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val response = NetworkService.api.getMySettings()
+                if (response.isSuccessful) {
+                    val profile = response.body()
+                    val fullName = "${profile?.lastName} ${profile?.firstName} ${profile?.middleName ?: ""}".trim()
+
+                    session.saveUserName(fullName) // Сохраняем на будущее
+
+                    withContext(Dispatchers.Main) {
+                        tvName.text = fullName
+                    }
+                }
+
+                // Также можно загрузить список лет для выпадающего списка в будущем
+                val yearsResp = NetworkService.api.getYearList()
+                if (yearsResp.isSuccessful) {
+                    Log.d("ASU_DEBUG", "Доступно лет для выбора: ${yearsResp.body()?.size}")
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        binding.navigationView.setNavigationItemSelectedListener { item ->
+            if (item.itemId == R.id.nav_logout) {
+                performLogout()
+            }
+            binding.drawerLayout.closeDrawers()
+            true
+        }
+    }
+
+    private fun performLogout() {
+        val session = SessionManager(this)
+        // 1. Очищаем все сохраненные данные в SharedPreferences
+        // Передаем null и -1, чтобы стереть токены и учетные данные
+        session.saveSession("", "", -1)
+        session.saveUserCredentials("", "", -1)
+        session.saveUserName("Ученик")
+        session.saveYearId(-1)
+
+        // 2. Переинициализируем сетевой сервис, чтобы Interceptor перестал слать старые заголовки
+        NetworkService.init(this)
+
+        // 3. Возвращаемся на экран логина
+        redirectToLogin()
     }
 }
