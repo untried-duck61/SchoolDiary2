@@ -1,16 +1,20 @@
 package ru.untriedduck.schooldiary2.adapters
 
 import android.content.Intent
+import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.Gson
 import ru.untriedduck.schooldiary2.LessonDetailsActivity
+import ru.untriedduck.schooldiary2.R
 import ru.untriedduck.schooldiary2.api.AssignmentAttachmentsResponse
 import ru.untriedduck.schooldiary2.api.Lesson
 import ru.untriedduck.schooldiary2.databinding.ItemLessonBinding
-import kotlin.jvm.java
 
 class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<DiaryAdapter.DiaryViewHolder>() {
 
@@ -36,29 +40,57 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
 
     override fun onBindViewHolder(holder: DiaryViewHolder, position: Int) {
         val lesson = lessons[position]
+        val context = holder.itemView.context
         with(holder.binding) {
             tvLessonNumber.text = lesson.number.toString()
             tvSubjectName.text = lesson.subjectName
-            tvLessonInfo.text = "${lesson.startTime} - ${lesson.endTime} | каб. ${lesson.room ?: "-"}"
 
+            val timeStr = "${lesson.startTime} - ${lesson.endTime}"
+            val roomStr = lesson.room?.takeIf { it.isNotEmpty() }?.let { " | каб. $it" } ?: ""
+            tvLessonInfo.text = "$timeStr$roomStr"
             val allAssignments = lesson.assignments ?: emptyList()
-
             // 1. Ищем только Домашнее Задание (typeId == 3)
             val homework = allAssignments.find { it.typeId == 3 }
             tvAssignment.text = homework?.assignmentName ?: "Нет задания"
 
-            // 2. Собираем ВСЕ оценки за урок
-            val allMarks = allAssignments.mapNotNull { it.mark?.markValue }
-            if (allMarks.isNotEmpty()) {
-                cardMark.visibility = View.VISIBLE
-                tvMark.text = allMarks.joinToString(", ")
-                // Цвет берем по первой оценке
-                cardMark.setCardBackgroundColor(getMarkColor(allMarks.first()))
+            val marks = allAssignments.mapNotNull { it.mark?.markValue }.filter { it.isNotEmpty() }
+
+            marksContainer.removeAllViews() // Очищаем старые оценки перед отрисовкой
+
+            if (marks.isNotEmpty()) {
+                marksContainer.visibility = View.VISIBLE
+
+                // Определяем, какие оценки выводить
+                val displayMarks = if (marks.size > 3) {
+                    marks.take(2) + "..." // Берем первые 2 и добавляем многоточие
+                } else {
+                    marks
+                }
+
+                displayMarks.forEach { mark ->
+                    val markView = LayoutInflater.from(context).inflate(
+                        R.layout.view_mark_mini, marksContainer, false
+                    ) as androidx.cardview.widget.CardView
+
+                    val tvMarkValue = markView.findViewById<TextView>(R.id.tvMarkValue)
+                    tvMarkValue.text = mark
+
+                    // Если это реальная оценка, а не "...", красим её
+                    if (mark != "...") {
+                        markView.setCardBackgroundColor(getMarkColor(mark))
+                        // Можно добавить белый цвет текста для темных фонов
+                        tvMarkValue.setTextColor(Color.WHITE)
+                    } else {
+                        markView.setCardBackgroundColor(Color.TRANSPARENT)
+                        tvMarkValue.setTextColor(Color.GRAY)
+                    }
+
+                    marksContainer.addView(markView)
+                }
             } else {
-                cardMark.visibility = View.GONE
+                marksContainer.visibility = View.GONE
             }
 
-            // 3. Показываем скрепку, если есть хоть один файл в любом задании
             val hasFiles = lesson.assignments?.any { lessonsWithFiles.contains(it.id) } ?: false
             ivHasFile.visibility = if (hasFiles) View.VISIBLE else View.GONE
 
