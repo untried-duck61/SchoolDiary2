@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Школьный дневник</string>
+    <string name="open">Открыть</string>
+    <string name="close">Закрыть</string>
+    <string name="nav_header_title">Личный кабинет</string>
+    <string name="logout_confirm">Вы уверены, что хотите выйти?</string>
 </resources>
