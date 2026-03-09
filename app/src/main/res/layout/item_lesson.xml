@@ -42,7 +42,7 @@
 
             android:textSize="18sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/cardMark"
+            app:layout_constraintEnd_toStartOf="@+id/ivHasFile"
             app:layout_constraintStart_toEndOf="@id/tvLessonNumber"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Математика" />
@@ -69,13 +69,13 @@
             android:maxLines="2"
 
             android:textSize="14sp"
-            app:layout_constraintEnd_toStartOf="@+id/cardMark"
+            app:layout_constraintEnd_toStartOf="@+id/marksContainer"
             app:layout_constraintStart_toStartOf="@id/tvSubjectName"
             app:layout_constraintTop_toBottomOf="@id/tvLessonInfo"
             tools:text="Решить задачи на странице 45" />
 
         <!-- Оценка (в отдельной карточке для красоты) -->
-        <androidx.cardview.widget.CardView
+        <!--androidx.cardview.widget.CardView
             android:id="@+id/cardMark"
             android:layout_width="40dp"
             android:layout_height="40dp"
@@ -95,22 +95,30 @@
                 android:textSize="20sp"
                 android:textStyle="bold"
                 tools:text="5" />
-        </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView-->
+        <!-- Контейнер для нескольких оценок справа -->
+        <LinearLayout
+            android:id="@+id/marksContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/ivHasFile"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:contentDescription="ivHasFile"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="4dp"
+            android:contentDescription="Вложения"
             android:visibility="gone"
-            app:layout_constraintBottom_toTopOf="@+id/cardMark"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="1.0"
-            app:layout_constraintStart_toEndOf="@+id/tvSubjectName"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintBottom_toBottomOf="@+id/tvSubjectName"
+            app:layout_constraintEnd_toStartOf="@+id/marksContainer"
+            app:layout_constraintTop_toTopOf="@+id/tvSubjectName"
             app:srcCompat="@drawable/ic_attach_file"
-            tools:visibility="visible"/>
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.cardview.widget.CardView>
