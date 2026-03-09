@@ -50,4 +50,18 @@ class SessionManager(context: Context) {
 
     fun getYearId(): Int = prefs.getInt("year_id", -1)
 
+    fun saveLastSelectedDate(dateMillis: Long) {
+        prefs.edit().putLong("last_date", dateMillis).apply()}
+
+    fun getLastSelectedDate(): Long {
+        // По умолчанию возвращаем текущее время
+        return prefs.getLong("last_date", System.currentTimeMillis())
+    }
+
+    fun saveUserName(fullName: String) {
+        prefs.edit().putString("user_full_name", fullName).apply()
+    }
+
+    fun getUserName(): String = prefs.getString("user_full_name", "Ученик") ?: "Ученик"
+
 }
