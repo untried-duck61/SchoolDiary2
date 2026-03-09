@@ -15,7 +15,11 @@
         android:theme="@style/Theme.SchoolDiary2">
         <activity
             android:name=".LessonDetailsActivity"
-            android:exported="false" />
+            android:exported="false" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+        </activity>
         <activity
             android:name=".LoginActivity"
             android:exported="false" />
