@@ -3,6 +3,7 @@
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="ic_launcher_background">#0869A9</color>
 
     <!-- Light colors -->
     <color name="colorPrimaryLight">#008CEA</color>
