@@ -35,3 +35,17 @@ data class ContextResponse(
     val schoolId: Int,
     val userId: Int
 )
+
+// Для ФИО
+data class MySettingsResponse(
+    val firstName: String,
+    val lastName: String,
+    val middleName: String?,
+    val loginName: String
+)
+
+// Для списка лет
+data class YearResponse(
+    val id: Int,
+    val name: String
+)
