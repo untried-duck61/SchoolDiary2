@@ -5,7 +5,7 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/untried-duck61/SchoolDiary2?style=flat-square)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/untried-duck61/SchoolDiary2?style=flat-square)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/untried-duck61/SchoolDiary2/total?style=flat-square)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/untried-duck61/SchoolDiary2/gradle.yml?style=flat-square)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/untried-duck61/SchoolDiary2/android.yml?style=flat-square)
 ## Использование
 Чтобы использовать приложение Школьный дневник, нужно:
 <ol>
