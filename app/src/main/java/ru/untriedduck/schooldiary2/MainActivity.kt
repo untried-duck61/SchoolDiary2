@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -306,6 +308,7 @@ class MainActivity : AppCompatActivity() {
             binding.drawerLayout.closeDrawers()
             true
         }
+        setupYearSpinner(headerView)
     }
 
     private fun performLogout() {
@@ -322,5 +325,49 @@ class MainActivity : AppCompatActivity() {
 
         // 3. Возвращаемся на экран логина
         redirectToLogin()
+    }
+
+    private fun setupYearSpinner(headerView: View) {
+        val spinner = headerView.findViewById<androidx.appcompat.widget.AppCompatSpinner>(R.id.spinnerYear)
+        val session = SessionManager(this)
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val response = NetworkService.api.getYearList()
+                if (response.isSuccessful) {
+                    val years = response.body() ?: emptyList()
+                    val yearNames = years.map { it.name }
+
+                    withContext(Dispatchers.Main) {
+                        val adapter = ArrayAdapter(
+                            this@MainActivity,
+                            android.R.layout.simple_spinner_item,
+                            yearNames
+                        )
+                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        spinner.adapter = adapter
+
+                        // Устанавливаем текущий выбранный год в спиннере
+                        val currentYearId = session.getYearId()
+                        val startIndex = years.indexOfFirst { it.id == currentYearId }
+                        if (startIndex != -1) spinner.setSelection(startIndex)
+
+                        // Обработка выбора
+                        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                                val selectedYear = years[position]
+                                if (selectedYear.id != session.getYearId()) {
+                                    session.saveYearId(selectedYear.id)
+                                    // Перезагружаем данные для нового года
+                                    refreshData()
+                                    binding.drawerLayout.closeDrawers()
+                                }
+                            }
+                            override fun onNothingSelected(parent: AdapterView<*>?) {}
+                        }
+                    }
+                }
+            } catch (e: Exception) { e.printStackTrace() }
+        }
     }
 }
