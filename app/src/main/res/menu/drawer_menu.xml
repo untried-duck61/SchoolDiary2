@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
         android:id="@+id/nav_announcements"
-        amdroid:icon="@drawable/ic_announcements"
-        android:title="Объявления"
+        android:icon="@drawable/ic_announcements"
+        android:title="Объявления" />
     <item
         android:id="@+id/nav_logout"
         android:icon="@drawable/ic_logout"
