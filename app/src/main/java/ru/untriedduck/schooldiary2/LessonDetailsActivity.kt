@@ -40,7 +40,9 @@ class LessonDetailsActivity : AppCompatActivity() {
 
         // 1. Ставим заголовки
         binding.tvDetSubject.text = lesson.subjectName
-        binding.tvDetInfo.text = "${lesson.startTime} - ${lesson.endTime} | каб. ${lesson.room ?: "-"}"
+        val timeStr = "${lesson.startTime} - ${lesson.endTime}"
+        val roomStr = lesson.room?.takeIf { it.isNotEmpty() }?.let { " | каб. $it" } ?: ""
+        binding.tvDetInfo.text = "$timeStr$roomStr"
 
         // 2. Настраиваем адаптер
         val assignments = lesson.assignments ?: emptyList()
