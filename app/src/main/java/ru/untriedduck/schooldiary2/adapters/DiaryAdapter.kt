@@ -51,7 +51,7 @@ class DiaryAdapter(private var lessons: List<Lesson>) : RecyclerView.Adapter<Dia
             val allAssignments = lesson.assignments ?: emptyList()
             // 1. Ищем только Домашнее Задание (typeId == 3)
             val homework = allAssignments.find { it.typeId == 3 }
-            tvAssignment.text = homework?.assignmentName ?: ""
+            tvAssignment.text = homework?.assignmentName ?: "--- Домашнее задание отсутствует ---"
 
             val marks = allAssignments.mapNotNull { it.mark?.markValue }.filter { it.isNotEmpty() }
 
