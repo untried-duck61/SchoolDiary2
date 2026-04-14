@@ -1,19 +1,23 @@
-<svg width="600" height="120" viewBox="0 0 600 120" fill="none" xmlns="http://w3.org">
+<svg width="600" height="160" viewBox="0 0 600 160" fill="none" xmlns="http://w3.org">
   <!-- Полупрозрачный красный фон -->
-  <rect width="600" height="120" rx="10" fill="#FF0000" fill-opacity="0.15"/>
-  <!-- Красная полоска слева для акцента -->
-  <rect width="6" height="120" rx="3" fill="#FF4444"/>
-  
-  <foreignObject x="20" y="15" width="560" height="90">
-    <div xmlns="http://w3.org" style="font-family: sans-serif; font-size: 14px; color: #D32F2F; line-height: 1.5;">
-      <strong style="display: block; margin-bottom: 5px; font-size: 15px;">Важно: </strong>
-      <ol style="margin: 0; padding-left: 20px;">
-        <li>Найти и выбрать вашу школу в выпадающем списке поля "Школа"</li>
-        <li>Ввести ваше имя пользователя/фразу логина и пароль в соответствующие поля</li>
-      </ol>
-      <p style="margin-top: 5px; font-size: 12px; font-style: italic; opacity: 0.8;">
-        * Этот способ входа может быть недоступен в ближайшем будущем, так как было принято решение со стороны Сетевого города перейти на вход через Госуслуги.
-      </p>
-    </div>
-  </foreignObject>
+  <rect width="600" height="160" rx="10" fill="#FF0000" fill-opacity="0.12" />
+  <!-- Красная полоска слева -->
+  <rect width="6" height="160" rx="3" fill="#FF4444" />
+
+  <!-- Заголовок -->
+  <text x="25" y="25" font-family="sans-serif" font-size="15" font-weight="bold" fill="#D32F2F">
+    Важно:
+  </text>
+
+  <!-- Список -->
+  <text x="25" y="50" font-family="sans-serif" font-size="14" fill="#D32F2F">
+    <tspan x="25" dy="0">1. Найти и выбрать вашу школу в выпадающем списке поля "Школа"</tspan>
+    <tspan x="25" dy="22">2. Ввести ваше имя пользователя/фразу логина и пароль в соответствующие поля</tspan>
+  </text>
+
+  <!-- Дисклеймер про Госуслуги (разбит на две строки) -->
+  <text x="25" y="115" font-family="sans-serif" font-size="12" font-style="italic" fill="#D32F2F" opacity="0.8">
+    <tspan x="25" dy="0">* Этот способ входа может быть недоступен в ближайшем будущем, так как было</tspan>
+    <tspan x="25" dy="16">принято решение со стороны Сетевого города перейти на вход через Госуслуги.</tspan>
+  </text>
 </svg>
