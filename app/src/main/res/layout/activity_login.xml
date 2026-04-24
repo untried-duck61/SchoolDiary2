@@ -31,8 +31,45 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edtUsername"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintTop_toBottomOf="@+id/tvLoginTitle"
+        app:layout_constraintVertical_bias="0.138" />
+
+    <RelativeLayout
+        android:id="@+id/loginMethodsDivider"
+        android:layout_width="333dp"
+        android:layout_height="19dp"
+        android:layout_centerVertical="true"
+        app:layout_constraintBottom_toTopOf="@+id/edtSearchSchool"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnLoginEsia"
+        app:layout_constraintVertical_bias="0.073">
+
+        <TextView
+            android:id="@+id/tvDividerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:text="ИЛИ" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="16dp"
+            android:layout_toStartOf="@id/tvDividerText" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="16dp"
+            android:layout_toEndOf="@id/tvDividerText" />
+
+    </RelativeLayout>
 
     <androidx.appcompat.widget.AppCompatAutoCompleteTextView
         android:id="@+id/edtSearchSchool"
