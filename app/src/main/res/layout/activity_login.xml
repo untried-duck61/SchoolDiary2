@@ -140,19 +140,6 @@
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:id="@+id/labelPassword"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:labelFor="@id/edtPassword"
-        android:text="Пароль"
-        app:layout_constraintBottom_toTopOf="@+id/edtPassword"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.118"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edtUsername"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <TextView
         android:id="@+id/labelSpinnerSchool"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
