@@ -19,7 +19,7 @@
             android:exported="false" />
         <activity
             android:name=".LessonDetailsActivity"
-            android:exported="false" >
+            android:exported="false">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".MainActivity" />
