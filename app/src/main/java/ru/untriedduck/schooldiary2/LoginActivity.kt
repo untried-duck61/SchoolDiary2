@@ -45,6 +45,11 @@ class LoginActivity : AppCompatActivity() {
         binding.btnLogin.setOnClickListener {
             attemptLogin()
         }
+
+        binding.btnLoginEsia.setOnClickListener {
+            val intent = Intent(this, EsiaLoginActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     private fun setupSchoolSearch() {
