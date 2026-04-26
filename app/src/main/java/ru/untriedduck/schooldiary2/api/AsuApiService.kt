@@ -76,4 +76,11 @@ interface AsuApiService {
 
     @GET("webapi/mysettings/yearlist")
     suspend fun getYearList(): Response<List<YearResponse>>
+
+    @FormUrlEncoded
+    @POST("webapi/login")
+    suspend fun loginByEsia(
+        @Header("Cookie") sessionCookie: String,
+        @FieldMap params: Map<String, String>
+    ): Response<LoginResponse>
 }
