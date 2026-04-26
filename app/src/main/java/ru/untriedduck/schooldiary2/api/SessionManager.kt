@@ -64,4 +64,16 @@ class SessionManager(context: Context) {
 
     fun getUserName(): String = prefs.getString("user_full_name", "Ученик") ?: "Ученик"
 
+    fun saveEsiaToken(token: String?) {
+        prefs.edit().putString("esia_token", token).apply()
+    }
+
+    fun getEsiaToken(): String? = prefs.getString("esia_token", null)
+
+    fun setLoginMethod(method: String) { // "ESIA" или "CREDENTIALS"
+        prefs.edit().putString("login_method", method).apply()
+    }
+
+    fun getLoginMethod(): String = prefs.getString("login_method", "CREDENTIALS") ?: "CREDENTIALS"
+
 }
