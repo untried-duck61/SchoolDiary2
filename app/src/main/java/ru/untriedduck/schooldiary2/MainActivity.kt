@@ -195,52 +195,51 @@ class MainActivity : AppCompatActivity() {
 
     private suspend fun performSilentLogin(): Boolean {
         val session = SessionManager(this)
-        val login = session.getUserLogin() ?: return false
-        val password = session.getUserPass() ?: return false
-        val schoolId = session.getSchoolId()
+        val method = session.getLoginMethod()
 
         return try {
-            // 1. Получаем соль
             val authResp = NetworkService.api.getAuthData()
-            if (!authResp.isSuccessful) return false
-
-            val authData = authResp.body()!!
             val nSessionId = authResp.headers().values("Set-Cookie")
                 .find { it.contains("NSSESSIONID") }?.split(";")?.first() ?: ""
 
-            // 2. Хешируем
-            val pwHash = (authData.salt + password.md5()).md5()
-            val loginParams = mapOf(
-                "LoginType" to "1", "cid" to "2", "sid" to "1", "pid" to "-232",
-                "cn" to "232", "sft" to "2", "scid" to schoolId.toString(),
-                "UN" to login, "PW" to pwHash.substring(0, password.length),
-                "lt" to authData.lt, "pw2" to pwHash, "ver" to authData.ver
-            )
+            val params: Map<String, String> = if (method == "ESIA") {
+                // ПУТЬ ГОСУСЛУГ
+                val esiaToken = session.getEsiaToken() ?: return false
+                mapOf(
+                    "LoginType" to "9",
+                    "grant_type" to "refresh_token",
+                    "refresh_token" to esiaToken
+                )
+            } else {
+                // ПУТЬ ЛОГИН-ПАРОЛЬ
+                val login = session.getUserLogin() ?: return false
+                val password = session.getUserPass() ?: return false
+                val authData = authResp.body()!!
+                val pwHash = (authData.salt + password.md5()).md5()
+                mapOf(
+                    "LoginType" to "1", "cid" to "2", "sid" to "1", "pid" to "-232",
+                    "cn" to "232", "scid" to session.getSchoolId().toString(),
+                    "UN" to login, "PW" to pwHash.substring(0, password.length),
+                    "lt" to authData.lt, "pw2" to pwHash, "ver" to authData.ver
+                )
+            }
 
-            // 3. Логин
-            val loginResp = NetworkService.api.login(nSessionId, params = loginParams)
-            if (!loginResp.isSuccessful) return false
+            val loginResp = NetworkService.api.loginByEsia(nSessionId, params)
+            if (loginResp.isSuccessful) {
+                val atKey = loginResp.body()?.at
+                val esrnSec = loginResp.headers().values("Set-Cookie")
+                    .find { it.contains("ESRNSec=") && !it.contains("ESRNSec=;") }
+                    ?.split(";")?.first()
 
-            val atKey = loginResp.body()?.at
-            val esrnSec = loginResp.headers().values("Set-Cookie")
-                .filter { it.contains("ESRNSec=") && !it.contains("ESRNSec=;") }
-                .map { it.split(";").first() }.lastOrNull()
-
-            if (atKey != null && esrnSec != null) {
-                session.saveSession(atKey, esrnSec, session.getStudentId())
-                NetworkService.init(this) // Переинициализируем перехватчик кук
-
-                // Обновляем yearId через context
-                val ctxResp = NetworkService.api.getContext()
-                if (ctxResp.isSuccessful) {
-                    ctxResp.body()?.schoolYearId?.let { session.saveYearId(it) }
-                }
-                true
+                if (atKey != null && esrnSec != null) {
+                    session.saveSession(atKey, esrnSec, session.getStudentId())
+                    NetworkService.init(this)
+                    true
+                } else false
             } else false
-        } catch (e: Exception) {
-            false
-        }
+        } catch (e: Exception) { false }
     }
+
 
     private fun checkSession(): Boolean {
         val session = SessionManager(this)
