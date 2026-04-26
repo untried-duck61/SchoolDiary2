@@ -1,5 +1,6 @@
 package ru.untriedduck.schooldiary2
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -8,9 +9,9 @@ import androidx.core.view.WindowInsetsCompat
 import android.content.Intent
 import android.view.View
 import android.webkit.CookieManager
-import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.core.graphics.values
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,6 +19,9 @@ import kotlinx.coroutines.withContext
 import ru.untriedduck.schooldiary2.api.NetworkService
 import ru.untriedduck.schooldiary2.api.SessionManager
 import ru.untriedduck.schooldiary2.databinding.ActivityEsiaLoginBinding
+import android.util.Log
+import android.webkit.*
+import com.google.gson.Gson
 
 class EsiaLoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEsiaLoginBinding
