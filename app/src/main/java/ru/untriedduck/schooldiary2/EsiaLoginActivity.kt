@@ -25,7 +25,10 @@ import com.google.gson.Gson
 
 class EsiaLoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEsiaLoginBinding
+    private var interceptedToken: String? = null // Хранилище для токена
+    private var isLoginTriggered = false // Флаг, чтобы не зайти дважды
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,84 +36,152 @@ class EsiaLoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupWebView()
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
     }
+
     private fun setupWebView() {
         val webView = binding.webViewEsia
-        webView.settings.javaScriptEnabled = true
-        webView.settings.domStorageEnabled = true // Важно для Госуслуг
+
+        webView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            userAgentString = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+        }
+
+        webView.addJavascriptInterface(object {
+            @JavascriptInterface
+            fun onTokenIntercepted(jsonResponse: String) {
+                // ШАГ 1: Просто сохраняем токен
+                val token = Gson().fromJson(jsonResponse, Map::class.java)["token"] as? String
+                if (!token.isNullOrEmpty()) {
+                    interceptedToken = token
+                    Log.d("ASU_ESIA", "Токен сохранен в память, ждем перехода на АСУ РСО...")
+                }
+            }
+        }, "AndroidBridge")
 
         webView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                super.onPageStarted(view, url, favicon)
+                injectInterceptor(view)
+            }
+
             override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                injectInterceptor(view)
                 binding.webViewProgress.visibility = View.GONE
 
-                // Проверяем куки при каждой загрузке страницы
-                checkCookies(url ?: "")
-            }
+                Log.d("ASU_ESIA", "Загружена страница: $url")
 
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                return false // Позволяем WebView самому обрабатывать редиректы
+                // ШАГ 2: Проверяем, перекинули ли нас обратно на АСУ РСО
+                // Обычно редирект идет на https://asurso.ru/app/school/main/
+                if (url != null && url.contains("asurso.ru/app/") && interceptedToken != null && !isLoginTriggered) {
+                    isLoginTriggered = true
+                    Log.d("ASU_ESIA", "Мы на странице АСУ РСО. Запускаем обмен токена...")
+
+                    // Прячем WebView, чтобы пользователь не видел веб-интерфейс
+                    webView.visibility = View.INVISIBLE
+                    binding.webViewProgress.visibility = View.VISIBLE
+
+                    performAsuLogin(interceptedToken!!)
+                }
             }
         }
 
-        // URL для начала входа через ЕСИА (для Самары)
-        // Внимание: иногда нужно передать дополнительные параметры региона
-        val esiaUrl = "https://asurso.ru/webapi/auth/esia/login"
-        webView.loadUrl(esiaUrl)
+        val startUrl = "https://asurso.ru/webapi/sso/esia/login?esia_permissions=1&esia_role=1"
+        webView.loadUrl(startUrl)
     }
 
-    private fun checkCookies(url: String) {
-        val cookieManager = CookieManager.getInstance()
-        val cookies = cookieManager.getCookie(url) ?: ""
-
-        // Ищем нашу главную куку
-        if (cookies.contains("ESRNSec")) {
-            // Если кука появилась, значит вход в систему произошел
-            // Теперь нам нужно вытащить 'at' токен.
-            // В ESIA-потоке он обычно отдается сервером после успешного редиректа.
-            extractSessionAndFinish(cookies)
-        }
+    private fun injectInterceptor(view: WebView?) {
+        val script = """
+            (function() {
+                // Перехват XMLHttpRequest
+                var oldOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function() {
+                    this.addEventListener('load', function() {
+                        if (this.responseURL.includes('sfd.gosuslugi.ru/session')) {
+                            AndroidBridge.onTokenIntercepted(this.responseText);
+                        }
+                    });
+                    oldOpen.apply(this, arguments);
+                };
+                
+                // Перехват Fetch
+                var oldFetch = window.fetch;
+                window.fetch = function() {
+                    return oldFetch.apply(this, arguments).then(function(response) {
+                        if (response.url.includes('sfd.gosuslugi.ru/session')) {
+                            response.clone().text().then(function(data) {
+                                AndroidBridge.onTokenIntercepted(data);
+                            });
+                        }
+                        return response;
+                    });
+                };
+            })();
+        """.trimIndent()
+        view?.evaluateJavascript(script, null)
     }
 
-    private fun extractSessionAndFinish(cookieString: String) {
-        val esrnSec = cookieString.split("; ")
-            .find { it.startsWith("ESRNSec=") } ?: return
 
+    private fun performAsuLogin(token: String) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 1. Сначала инициализируем NetworkService с новой кукой
                 val session = SessionManager(this@EsiaLoginActivity)
-                // 'at' пока не знаем, ставим временный, чтобы сделать запрос за контекстом
-                session.saveSession("temp", esrnSec, -1)
-                NetworkService.init(this@EsiaLoginActivity)
 
-                // 2. Запрашиваем контекст, чтобы получить настоящий 'at' и 'studentId'
-                val contextResp = NetworkService.api.getContext()
-                if (contextResp.isSuccessful) {
-                    val context = contextResp.body()
-                    val realAt = context?.at
-                    val userId = context?.userId ?: -1
+                // Берем актуальный NSSESSIONID прямо из кук WebView
+                val cookies = CookieManager.getInstance().getCookie("https://asurso.ru/")
+                val nSessionId = cookies?.split("; ")
+                    ?.find { it.startsWith("NSSESSIONID=") }?.split(";")?.first() ?: ""
 
-                    if (realAt != null) {
-                        // 3. Теперь у нас есть ВСЁ. Сохраняем финально.
-                        session.saveSession(realAt, esrnSec, userId)
+                val params = mapOf(
+                    "LoginType" to "9",
+                    "grant_type" to "refresh_token",
+                    "refresh_token" to token
+                )
 
-                        // Получаем yearId для коллекции
-                        val yearId = context.schoolYearId
-                        session.saveYearId(yearId)
+                Log.d("ASU_ESIA", "Отправка LoginType 9 с токеном...")
+                val response = NetworkService.api.loginByEsia(nSessionId, params)
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    val atKey = body?.at
+                    val esrnSec = response.headers().values("Set-Cookie")
+                        .find { it.contains("ESRNSec=") && !it.contains("ESRNSec=;") }
+                        ?.split(";")?.first()
+
+                    if (atKey != null && esrnSec != null) {
+                        // Сохраняем метод входа для Silent Login
+                        session.setLoginMethod("ESIA")
+                        session.saveEsiaToken(token)
+                        session.saveSession(atKey, esrnSec, -1)
+
+                        NetworkService.init(this@EsiaLoginActivity)
+
+                        // Получаем данные ученика через контекст
+                        val ctx = NetworkService.api.getContext()
+                        if (ctx.isSuccessful) {
+                            session.saveSession(atKey, esrnSec, ctx.body()?.userId ?: -1)
+                            session.saveYearId(ctx.body()?.schoolYearId ?: -1)
+                        }
 
                         withContext(Dispatchers.Main) {
+                            Log.d("ASU_ESIA", "Успешный переход в приложение!")
                             startActivity(Intent(this@EsiaLoginActivity, MainActivity::class.java))
                             finish()
                         }
                     }
+                } else {
+                    Log.e("ASU_ESIA", "Ошибка обмена токена: ${response.code()}")
+                    isLoginTriggered = false // Разрешаем повторную попытку при ошибке
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("ASU_ESIA", "Ошибка: ${e.message}")
+                isLoginTriggered = false
             }
         }
     }
