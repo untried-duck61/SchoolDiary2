@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:backgroundTint="?attr/colorPrimary"
         android:text="Войти через  "
-        android:drawableEnd="@drawable/ic_gos"
+        android:drawableEnd="@drawable/ic_gos_bg"
         android:textColor="?attr/coloredBtnTextColor"
         app:layout_constraintBottom_toTopOf="@+id/edtSearchSchool"
         app:layout_constraintEnd_toEndOf="parent"
